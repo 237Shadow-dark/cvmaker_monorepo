@@ -1,0 +1,17 @@
+
+
+> @cv-maker-app/backend@1.0.0 dev /home/delta/Documents/Projects/CVMAKER_MONOREPO/apps/backend
+> nodemon src/app.js
+
+[33m[nodemon] 2.0.22[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,json[39m
+[32m[nodemon] starting `node src/app.js`[39m
+(node:17010) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/delta/Documents/Projects/CVMAKER_MONOREPO/apps/backend/src/app.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /home/delta/Documents/Projects/CVMAKER_MONOREPO/apps/backend/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running on port 5500
+[32m[nodemon] clean exit - waiting for changes before restart[39m
+[41m[30m ELIFECYCLE [39m[49m [31mCommand failed.[39m
