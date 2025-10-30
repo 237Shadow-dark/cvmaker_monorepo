@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// generator client {
+//   provider = "prisma-client"
+//   output   = "../src/generated/prisma"
+// }
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../node_modules/@prisma/client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int               @id @default(autoincrement())
+  name        String
+  email       String            @unique
+  googleId    String?           @unique
+  password    String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  curriculumVitae CurriculumVitae[]  
+}
+
+model CurriculumVitae {
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  summary     String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  user        User          @relation(fields: [userId], references: [id])
+  profil      Profil?       
+  skills      Skill[]
+  languages   Language[]
+  experiences Experience[]
+  educations  Education[]
+  projects    Project[]
+}
+
+model Profil {
+  id                 Int              @id @default(autoincrement())
+  email              String
+  picture            String
+  phone              String
+  bio                String
+  address            String?
+  profession         String?
+  curriculumVitaeId  Int              @unique
+  curriculumVitae    CurriculumVitae  @relation(fields: [curriculumVitaeId], references: [id])
+}
+
+model Skill {
+  id                 Int              @id @default(autoincrement())
+  name               String
+  level              String
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  curriculumVitaeId  Int?
+  curriculumVitae    CurriculumVitae? @relation(fields: [curriculumVitaeId], references: [id])
+}
+
+model Language {
+  id                 Int              @id @default(autoincrement())
+  name               String
+  proficiency        String
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  curriculumVitaeId  Int?
+  curriculumVitae    CurriculumVitae? @relation(fields: [curriculumVitaeId], references: [id])
+}
+
+model Experience {
+  id                 Int              @id @default(autoincrement())
+  title              String
+  company            String
+  startDate          DateTime
+  endDate            DateTime?
+  description        String
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  curriculumVitaeId  Int?
+  curriculumVitae    CurriculumVitae? @relation(fields: [curriculumVitaeId], references: [id])
+}
+
+model Education {
+  id                 Int              @id @default(autoincrement())
+  institution        String
+  degree             String
+  fieldOfStudy       String
+  startDate          DateTime
+  endDate            DateTime?
+  description        String
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  curriculumVitaeId  Int?
+  curriculumVitae    CurriculumVitae? @relation(fields: [curriculumVitaeId], references: [id])
+}
+
+model Project {
+  id                 Int              @id @default(autoincrement())
+  title              String
+  company            String?
+  description        String
+  startDate          DateTime
+  endDate            DateTime?
+  link               String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  curriculumVitaeId  Int?
+  curriculumVitae    CurriculumVitae? @relation(fields: [curriculumVitaeId], references: [id])
+}

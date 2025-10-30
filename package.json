@@ -4,6 +4,7 @@
   "description": "A web application to create and manage CVs",
   "private": true,
   "packageManager": "pnpm@10.20.0",
+  "types": "module",
   "scripts": {
     "dev": "pnpm run --parallel dev",
     "build": "turbo run --recursive build",
