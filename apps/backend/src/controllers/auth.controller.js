@@ -11,7 +11,7 @@ export const login= async (req , res ) =>{
             return res.status(400).json({message: "All fields are required"});
         }
 
-       const user = await prisma.user.findUnique({email});
+       const user = await prisma.user.findUnique({where : { email },});
 
        if(!user) {
             return res.status(400).json({message: "Invalid credentials"});
