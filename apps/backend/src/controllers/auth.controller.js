@@ -105,12 +105,48 @@ export const updateUser = async (req, res) =>{
     }
 
 }
-export const deleteUser = async (req, res) =>{
-    res.send('delete works');
-}
-export const logout = async (req, res) =>{
-    res.send('logout works');
-}
+
+export const deleteUser = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const user = await prisma.user.delete({
+      where: { id: Number(id) },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found or already deleted" });
+    }
+
+    return res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+
+    // Gestion propre de l'erreur "record not found"
+    if (error.code === "P2025") {
+      return res.status(404).json({ message: "User not found or already deleted" });
+    }
+
+    console.error("Error in deleteUser controller:", error.message);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
+export const logout = (req, res) => {
+    try {
+        res.cookie("jwt", "", {
+            maxAge: 0, // set cookie to expire immediately
+            // httpOnly: true,
+            // sameSite: "strict",
+            // secure: process.env.NODE_ENV !== "development"
+        });
+        return res.status(200).json({message: "Logout successful"});
+    } catch (error) {
+        console.log("Error in logout controller: ", error.message);
+        res.status(500).json({message: "Internal server error"});
+        
+    }
+}  
+
 export const getUser = async (req, res) =>{
     const userId = Number(req.params.id);
     try {
@@ -124,4 +160,13 @@ export const getUser = async (req, res) =>{
         console.log("Error in getUser controller: ", error.message);
     }
      
+}
+
+export const checkAuth = (req, res) =>{
+    try {
+        res.status(200).json(req.user);
+    } catch (error) {
+        console.log("Error in checkAuth controller: ", error.message);
+        res.status(500).json({message: "Internal server error"});
+    }
 }
