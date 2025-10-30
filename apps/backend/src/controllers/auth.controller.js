@@ -4,7 +4,7 @@ import prisma from "../lib/prisma.js";
 
 export const login= async (req , res ) =>{
     
-    const {name, email, password} = req.body;
+    const { email, password} = req.body;
 
    try {
         if(!email || !password){
