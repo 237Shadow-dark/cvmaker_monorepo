@@ -1,7 +1,6 @@
 
 
 export const createCV = async (req, res) => {
-  res.send("Create CV works");
 }
 
 export const updateCV = async (req, res) => {

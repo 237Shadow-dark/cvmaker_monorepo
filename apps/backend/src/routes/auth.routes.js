@@ -1,12 +1,12 @@
 import express from "express";
-// import { PrismaClient } from "@prisma/client";
-import pkg from '@prisma/client';
+// import pkg from '@prisma/client';
 import { deleteUser, getUser, login, logout, signup, updateUser } from "../controllers/auth.controller.js";
 import passport from "../controllers/google_auth.controller.js";
 import { generateToken } from "../lib/utils.js";
-const { PrismaClient } = pkg;
+import { protectRoute } from "../middleware/auth.middleware.js";
+// const { PrismaClient } = pkg;
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 const router = express.Router();
 
 
@@ -16,9 +16,9 @@ router.post("/login", login);
 
 router.post("/logout", logout);
 
-router.put("/update/:id", updateUser);
+router.put("/update/:id",protectRoute, updateUser);
 
-router.delete("/delete/:id", deleteUser);
+router.delete("/delete/:id",protectRoute, deleteUser);
 
 router.get("/user", getUser);
 
