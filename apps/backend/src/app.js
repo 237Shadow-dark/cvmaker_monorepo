@@ -13,17 +13,6 @@ app.use(session({ secret: "secret", resave: false, saveUninitialized: true }));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(cookieparser());
-// // Démarrer le login Google
-// app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
-
-// // Callback après authentification
-// app.get(
-//   "/auth/google/callback",
-//   passport.authenticate("google", { failureRedirect: "/login" }),
-//   (req, res) => {
-//     res.redirect("/dashboard"); // ou renvoie un JWT
-//   }
-// );
 
 app.use('/api/auth', Auth_router);
 app.use('/api/cv',protectRoute, CV_router);
