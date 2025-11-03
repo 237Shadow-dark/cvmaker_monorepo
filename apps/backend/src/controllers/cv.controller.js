@@ -1,167 +1,160 @@
 import prisma from "../lib/prisma.js";
-import { deleteUser } from "./auth.controller.js";
-import { createEducation, deleteEducation, updateEducation } from "./education.controller.js";
-import { createExperience, deleteExperience, updateExperience } from "./experience.controller.js";
-import { createLanguage, deleteLanguage, updateLanguage } from "./language.controller.js";
-import { createProfil, deleteProfil, updateProfil } from "./profil.controller.js";
-import { createProject, deleteProject, updateProject } from "./project.controller.js";
-import { createSkill, deleteSkill, updateSkill } from "./skill.controller.js";
+import {
+  createEducation, deleteEducation, updateEducation,
+} from "./education.controller.js";
+import {
+  createExperience, deleteExperience, updateExperience,
+} from "./experience.controller.js";
+import {
+  createLanguage, deleteLanguage, updateLanguage,
+} from "./language.controller.js";
+import {
+  createProfil, deleteProfil, updateProfil,
+} from "./profil.controller.js";
+import {
+  createProject, deleteProject, updateProject,
+} from "./project.controller.js";
+import {
+  createSkill, deleteSkill, updateSkill,
+} from "./skill.controller.js";
 
+// CREATE CV
 export const createCV = async (req, res) => {
-  const { education, experience, language, profil, project, skill} = req.body;
+  const { education = [], experience = [], language = [], profil, project = [], skill = [] } = req.body;
   const picture = req.body.photo ?? null;
-  const {userId} = Number(req.params)
+  const userId = Number(req.params.userId);
+
+  if (!userId)
+    return res.status(400).json({ message: "Invalid or missing userId" });
+
+  if ([education, language, profil, skill].every(arr => arr.length === 0))
+    return res.status(400).json({ message: "At least one section is required" });
 
   try {
-    if(!education && !language && !profil && !skill) return res.status(400).json({ message: "All fields are required" });
+    const cv = await prisma.curriculumVitae.create({ data: { userId } });
 
-    const CV = await prisma.curriculumVitae.create({
-      data: {
-        userId: userId
-      }
-    })
+    await Promise.all([
+  ...(education ? education.map(e => createEducation(e, cv.id)) : []),
+  ...(experience ? experience.map(e => createExperience(e, cv.id)) : []),
+  ...(language ? language.map(l => createLanguage(l, cv.id)) : []),
+  ...(project ? project.map(p => createProject(p, cv.id)) : []),
+  ...(skill ? skill.map(s => createSkill(s, cv.id)) : []),
+  profil ? createProfil(profil, cv.id, picture) : null
+].filter(Boolean));
 
-    if(!CV) return res.status(400).json({message: "CV not created, try again later"});
-
-    education.array.forEach(  async  (element) => {
-      await createEducation(element, CV.id)
+    return res.status(201).json({
+      message: "CV created successfully",
+      CV: cv,
     });
-
-    language.array.forEach(  async  (element) => {
-      await createLanguage(element, CV.id)
-    });
-
-    profil.array.forEach(  async  (element) => {
-      await createProfil(element, CV.id, picture)
-    });
-
-    skill.array.forEach(  async  (element) => {
-      await createSkill(element, CV.id)
-    });
-
-    if(experience){
-      experience.array.forEach(  async  (element) => {
-        await createExperience(element, CV.id)
-      });
-    }
-
-    if(project){
-      project.array.forEach(  async  (element) => {
-        await createProject(element, CV.id)
-      });
-    }
-    return res.status(200).json(CV)
   } catch (error) {
-    res.status(500).json({message: "Internal server error"});
-    console.log("Error in create CV controller: ", error.message);
+    console.error("Error in createCV:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
+//  UPDATE CV
 export const updateCV = async (req, res) => {
-  const { education, experience, language, profil, project, skill} = req.body;
+  const { education = [], experience = [], language = [], profil , project = [], skill = [] } = req.body;
   const picture = req.body.photo ?? null;
+
   try {
-    if (education) {
-      education.array.forEach(  async  (element) => {
-        await updateEducation(element, element.id)
-      })
-    };
-
-    if (language) {
-      language.array.forEach(  async  (element) => {
-        await updateLanguage(element, element.id)
-      });
+    if([education, language, profil, skill, experience, project, ].every(arr => arr.length === 0))
+    {
+      return res.status(400).json({ message: "At least one section is required" });
     }
+    await Promise.all([
+  ...(education ? education.map(e => updateEducation(e, cv.id)) : []),
+  ...(experience ? experience.map(e => updateExperience(e, cv.id)) : []),
+  ...(language ? language.map(l => updateLanguage(l, cv.id)) : []),
+  ...(project ? project.map(p => updateProject(p, cv.id)) : []),
+  ...(skill ? skill.map(s => updateSkill(s, cv.id)) : []),
+  profil ? updateProfil(profil, cv.id, picture) : null
+].filter(Boolean));
 
-    if (profil) {
-      profil.array.forEach(  async  (element) => {
-        await updateProfil(element, element.id, picture)
-      });
-    }
-
-    if (skill) {
-      skill.array.forEach(  async  (element) => {
-        await updateSkill(element, element.id)
-      });
-    }
-
-    if(experience){
-      experience.array.forEach(  async  (element) => {
-        await updateExperience(element, element.id)
-      });
-    }
-
-    if(project){
-      project.array.forEach(  async  (element) => {
-        await updateProject(element, element.id)
-      });
-    }
+    return res.status(200).json({ message: "CV updated successfully" });
   } catch (error) {
-    res.status(500).json({message: "Internal server error"});
-    console.log("Error in update CV controller: ", error.message);
+    console.error("Error in updateCV:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
+//  DELETE CV
 export const deleteCV = async (req, res) => {
-    const {id} = req.params
-    let deletedEd = false
-    let deletedEx = false
-    let deletedLg = false
-    let deletedProf = false
-    let deletedProj = false
-    let deletedSk = false
-    let deletedCV
-    try {
-      deletedEd = await deleteEducation(id);
-      deletedEx = await deleteExperience(id);
-      deletedLg = await deleteLanguage(id);
-      deletedProf = await deleteProfil(id);
-      deletedProj = await deleteProject(id);
-      deletedSk = await deleteSkill(id);
+  const { id } = req.params;
+  const cvId = Number(id);
 
+  try {
+    await prisma.$transaction([
+      deleteEducation(cvId),
+      deleteExperience(cvId),
+      deleteLanguage(cvId),
+      deleteProfil(cvId),
+      deleteProject(cvId),
+      deleteSkill(cvId),
+      prisma.curriculumVitae.delete({ where: { id: cvId } }),
+    ]);
 
-      if(deletedEd && deletedEx && deletedLg && deletedProf && deletedProj && deletedSk){
-        deletedCV = await prisma.curriculumVitae.delete({
-          where:{id : Number(id)}
-        })
-      }
-      if (!deletedCV)  return res.status(400).json({ message: "Unable to delete the cv  " });
-      return res.status(200).json({ message: "CV delete successfully" });
-    } catch (error) {
-      res.status(500).json({message: "Internal server error"});
-      console.log("Error in delete CV controller: ", error.message);
-    }
-}
+    return res.status(200).json({ message: "CV deleted successfully" });
+  } catch (error) {
+    console.error("Error in deleteCV:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
 
+//  GET SINGLE CV
 export const getCV = async (req, res) => {
-  const {id} = req.params
+  const { id } = req.params;
+  const cvId = Number(id);
 
   try {
-    const CV = await prisma.curriculumVitae.findUnique({
-      where: {id: Number(id)}
-    })
-    if(!CV) return res.status(400).json({ message: "Unable to get the cv  " });
-    return res.status(200).json({ 
-      CV: CV,
-      message: "Get CV successfully" });
+    const cv = await prisma.curriculumVitae.findUnique({
+      where: { id: cvId },
+      include: {
+        education: true,
+        experience: true,
+        language: true,
+        profil: true,
+        project: true,
+        skill: true,
+      },
+    });
+
+    if (!cv) return res.status(404).json({ message: "CV not found" });
+
+    return res.status(200).json({
+      message: "CV retrieved successfully",
+      CV: cv,
+    });
   } catch (error) {
-    res.status(500).json({message: "Internal server error"});
-    console.log("Error in get CV controller: ", error.message);
+    console.error("Error in getCV:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
-}
+};
+
+//  GET ALL CV FOR A USER
 export const getAllCV = async (req, res) => {
-    const {id} = req.params
+  const { id } = req.params;
+  const userId = Number(id);
 
   try {
-    const CV = await prisma.curriculumVitae.findMany({
-      where: {userId: Number(id)}
-    })
-    if(!CV) return res.status(400).json({ message: "Unable to get all the cv  " });
-    return res.status(200).json({ 
-      CV: CV,
-      message: "Get all CV  successfully" });
+    const cvs = await prisma.curriculumVitae.findMany({
+      where: { userId },
+      include: {
+        education: true,
+        experience: true,
+        language: true,
+        profil: true,
+        project: true,
+        skill: true,
+      },
+    });
+
+    return res.status(200).json({
+      message: "All CVs retrieved successfully",
+      CV: cvs,
+    });
   } catch (error) {
-    res.status(500).json({message: "Internal server error"});
-    console.log("Error in get all CV controller: ", error.message);
+    console.error("Error in getAllCV:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
-}
+};

@@ -1,84 +1,111 @@
 import prisma from "../lib/prisma.js";
-import cloudinary from "../lib/cloudinary.js"
+import cloudinary from "../lib/cloudinary.js";
 
-export const createProfil = async ( profil, CV_id, picture ) => {
-     try {
-        let uploadResponse = null
-        if(picture){
-            uploadResponse = await cloudinary.uploader.upload(picture, {
-                folder: "profil"
-            });
-        }
-        
-            const created = await prisma.profil.create({
-                data:{
-                    email : profil.email,
-                    phone : profil.phone,
-                    address : profil.address,
-                    bio : profil.bio,
-                    profession : profil.profession,
-                    picture:  picture? uploadResponse.secure_url : '',
-                    curriculumVitaeId : Number(CV_id)
-                }
-        });
-        if(created) return true;
-
-     } catch (error) {
-        console.log("Error in create profil controller: ", error.message);
-     }
-}
-
-export const updateProfil = async (profil, profil_id, picture ) => {
-  const data = {}
+/**
+ * CREATE Profil
+ */
+export const createProfil = async (profil, cvId, picture) => {
+  if (!profil || !cvId) return null;
 
   try {
-    if(profil.email) data.email = profil.email;
-    if(profil.phone) data.phone = profil.phone;
-    if(profil.bio) data.bio = profil.bio;
-    if(profil.address) data.address = profil.address;
-    if(profil.profession) data.profession = profil.profession;
-    if(profil.picture) data.picture = profil.picture;
-    if(profil.curriculumVitaeId) data.curriculumVitaeId = profil.curriculumVitaeId;
-    if(picture){
-            uploadResponse = await cloudinary.uploader.upload(picture, {
-                folder: "profil"
-            });
-            data.picture = uploadResponse.secure_url;
-        }
+    let secureUrl = "";
+
+    // Upload image if present
+    if (picture) {
+      const uploadRes = await cloudinary.uploader.upload(picture, {
+        folder: "profil",
+        resource_type: "image",
+      });
+      secureUrl = uploadRes.secure_url;
+    }
+
+    const created = await prisma.profil.create({
+      data: {
+        email: profil.email ?? "",
+        phone: profil.phone ?? "",
+        address: profil.address ?? "",
+        bio: profil.bio ?? "",
+        profession: profil.profession ?? "",
+        picture: secureUrl,
+        curriculumVitaeId: Number(cvId),
+      },
+    });
+
+    return created;
+  } catch (error) {
+    console.error("❌ Error in createProfil:", error.message);
+    throw error;
+  }
+};
+
+/**
+ *  UPDATE Profil
+ */
+export const updateProfil = async (profil, profilId, picture) => {
+  if (!profilId) return null;
+
+  try {
+    const data = {};
+
+    // Fill in defined properties only
+    for (const [key, value] of Object.entries(profil)) {
+      if (value !== undefined && value !== null) data[key] = value;
+    }
+
+    // Handle optional new photo upload
+    if (picture) {
+      const uploadRes = await cloudinary.uploader.upload(picture, {
+        folder: "profil",
+        resource_type: "image",
+      });
+      data.picture = uploadRes.secure_url;
+    }
 
     const updated = await prisma.profil.update({
-        where: {id : Number(profil_id)},
-        data,
-    })
-    if(updated) return true;
+      where: { id: Number(profilId) },
+      data,
+    });
 
+    return updated;
   } catch (error) {
-        console.log("Error in update profil controller: ", error.message);
+    console.error(" Error in updateProfil:", error.message);
+    throw error;
   }
+};
 
-  
-}
+/**
+ *  DELETE all Profil entries for a given CV
+ */
+export const deleteProfil = async (cvId) => {
+  if (!cvId) return false;
 
-export const deleteProfil = async ( CV_id) => {
-    try {
-       const deleted = await prisma.profil.deleteMany({
-            where:{curriculumVitaeId: Number(CV_id)}
-        })
-        if (deleted) return true;
+  try {
+    const deleted = await prisma.profil.deleteMany({
+      where: { curriculumVitaeId: Number(cvId) },
+    });
 
-    } catch (error) {
-        console.log("Error in delete profil controller: ", error.message);
-    }
-}
+    return deleted.count > 0;
+  } catch (error) {
+    console.error("❌ Error in deleteProfil:", error.message);
+    throw error;
+  }
+};
 
-export const getProfil = async ( CV_id) => {
-  
-    try {
-        const profils = await prisma.profil.findMany({
-            where:{curriculumVitaeId: Number(CV_id)}
-        })
-        if (profils) return profils;
-    } catch (error) {
-        console.log("Error in get profils controller: ", error.message);
-    }
-}
+/**
+ *  GET Profil entries for a given CV
+ */
+export const getProfil = async (cvId) => {
+  if (!cvId) return [];
+
+  try {
+    const profils = await prisma.profil.findMany({
+      where: { curriculumVitaeId: Number(cvId) },
+      orderBy: { id: "asc" },
+    });
+
+    return profils;
+  } catch (error) {
+    console.error(" Error in getProfil:", error.message);
+    throw error;
+  }
+};

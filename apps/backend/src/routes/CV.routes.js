@@ -1,9 +1,14 @@
-import {Router} from "express";
+// import {Router, express} from "express";
+import express from "express";
 import { createCV, deleteCV, getAllCV, getCV, updateCV } from "../controllers/cv.controller.js";
 
-const router = Router();
+const router = express.Router();
 
-router.post("create-cv/:userId", createCV);
+router.get("/", (req, res) => {
+  res.send("CV Router is working!");
+});
+
+router.post("/create/:userId", createCV);
 
 router.get("/read/:id", getCV);
 

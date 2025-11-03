@@ -1,71 +1,93 @@
 import prisma from "../lib/prisma.js";
 
-export const createProject = async ( project, CV_id ) => {
-     try {
-        
-            const created = await prisma.project.create({
-                data:{
-                    title : project.title,
-                    company: project.company,
-                    startDate: project.startDate,
-                    endDate: project.endDate,
-                    description: project.description,
-                    link: project.link,
-                    curriculumVitaeId : Number(CV_id)
-                }
-        });
-        if(created) return true;
-
-     } catch (error) {
-        console.log("Error in create project controller: ", error.message);
-     }
-}
-
-export const updateProject = async (project, project_id ) => {
-  const data = {}
+/**
+ *  CREATE project
+ */
+export const createProject = async (project, cvId) => {
+  if (!project || !cvId) return null;
 
   try {
-    if(project.title) data.title = project.title;
-    if(project.company) data.company = project.company;
-    if(project.link) data.link = project.link;
-    if(project.description) data.description = project.description;
-    if(project.startDate) data.startDate = project.startDate;
-    if(project.endDate) data.endDate = project.endDate;
-    if(project.curriculumVitaeId) data.curriculumVitaeId = project.curriculumVitaeId;
+    const created = await prisma.project.create({
+      data: {
+        title: project.title ?? "",
+        company: project.company ?? "",
+        link: project.link ?? "",
+        startDate: project.startDate ? new Date(project.startDate) : null,
+        endDate: project.endDate ? new Date(project.endDate) : null,
+        description: project.description ?? "",
+        curriculumVitaeId: Number(cvId),
+      },
+    });
 
-    const updated = await prisma.project.update({
-        where: {id : Number(project_id)},
-        data
-    })
-    if(updated) return true;
-
+    return created;
   } catch (error) {
-        console.log("Error in update project controller: ", error.message);
+    console.error(" Error in createproject:", error.message);
+    throw error;
   }
+};
 
-  
-}
+/**
+ *  UPDATE project
+ */
+export const updateProject = async (project, projectId) => {
+  if (!projectId) return null;
 
-export const deleteProject = async ( CV_id) => {
-    try {
-       const deleted = await prisma.project.deleteMany({
-            where:{curriculumVitaeId: Number(CV_id)}
-        })
-        if (deleted) return true;
+  try {
+    const updated = await prisma.project.update({
+      where: { id: Number(projectId) },
+      data: {
+        title: project.title,
+        company: project.company,
+        link: project.link,
+        startDate: project.startDate ? new Date(project.startDate) : null,
+        endDate: project.endDate ? new Date(project.endDate) : null,
+        description: project.description,
+        curriculumVitaeId: project.curriculumVitaeId
+          ? Number(project.curriculumVitaeId)
+          : undefined,
+      },
+    });
 
-    } catch (error) {
-        console.log("Error in delete project controller: ", error.message);
-    }
-}
+    return updated;
+  } catch (error) {
+    console.error(" Error in updateproject:", error.message);
+    throw error;
+  }
+};
 
-export const getProject = async ( CV_id) => {
-  
-    try {
-        const projects = await prisma.project.findMany({
-            where:{curriculumVitaeId: Number(CV_id)}
-        })
-        if (projects) return projects;
-    } catch (error) {
-        console.log("Error in get projects controller: ", error.message);
-    }
-}
+/**
+ * DELETE all project entries for a given CV
+ */
+export const deleteProject = async (cvId) => {
+  if (!cvId) return null;
+
+  try {
+    const deleted = await prisma.project.deleteMany({
+      where: { curriculumVitaeId: Number(cvId) },
+    });
+
+    return deleted.count > 0;
+  } catch (error) {
+    console.error(" Error in deleteproject:", error.message);
+    throw error;
+  }
+};
+
+/**
+ *  GET project records for a given CV
+ */
+export const getProject = async (cvId) => {
+  if (!cvId) return [];
+
+  try {
+    const projects = await prisma.project.findMany({
+      where: { curriculumVitaeId: Number(cvId) },
+      orderBy: { startDate: "desc" },
+    });
+
+    return projects;
+  } catch (error) {
+    console.error("Error in getproject:", error.message);
+    throw error;
+  }
+};
