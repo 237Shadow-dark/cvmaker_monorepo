@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import Auth_router from './routes/auth.routes.js';
 import "dotenv/config";
 import passport from "./controllers/google_auth.controller.js";
@@ -13,6 +14,10 @@ app.use(session({ secret: "secret", resave: false, saveUninitialized: true }));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(cookieparser());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 
 app.use('/api/auth', Auth_router);
 app.use('/api/cv',protectRoute, CV_router);
