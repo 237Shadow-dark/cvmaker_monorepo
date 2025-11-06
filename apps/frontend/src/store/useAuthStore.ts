@@ -28,7 +28,7 @@ interface AuthState {
     googleUrl: string;
     signup: (data: SignupData) => Promise<void>  ;
     login: (data: LoginData) => Promise<void> ;
-    googleAuth: () => Promise<void> ;
+    // googleAuth: () => Promise<void> ;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -82,18 +82,18 @@ export const useAuthStore = create<AuthState>((set) => ({
             set({isLoggingIn: false});
         }
     },
-    googleAuth: async() => {
-        set({isCheckingAuth: true});
-        try {
-            const res = await axiosInstance.get("/auth/google");
-            if(res.data.success){
-                set({authUser: res.data.user});
-            }
-        } catch (error) {
-            console.error('Error during Google authentication:', error);
-        }
-        finally {
-            set({isCheckingAuth: false});
-        }
-    }
+    // googleAuth: async() => {
+    //     set({isCheckingAuth: true});
+    //     try {
+    //         const res = await axiosInstance.get("/auth/google");
+    //         if(res.data.success){
+    //             set({authUser: res.data.user});
+    //         }
+    //     } catch (error) {
+    //         console.error('Error during Google authentication:', error);
+    //     }
+    //     finally {
+    //         set({isCheckingAuth: false});
+    //     }
+    // }
 }));
